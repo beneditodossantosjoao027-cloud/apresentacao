@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diagrama de Fases</title>
+<style>
+:root{
+  --bg:#0a0e1a;
+  --bg2:#12182b;
+  --card:#161d33;
+  --text:#eef1ff;
+  --muted:#9aa3c7;
+  --accent:#6b8cff;
+  --accent2:#8b5cf6;
+  --accent3:#3b82f6;
+  --line:#243056;
+  --solido:#7ba3ff;
+  --liquido:#6b8cff;
+  --vapor:#a78bfa;
+}
+html{ height:100%; }
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{
+  margin:0; height:100%; background:var(--bg); color:var(--text);
+  font-family:'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  overflow:hidden;
+}
+
+#deck{ position:relative; height:100%; width:100%; }
+.slide{
+  position:absolute; inset:0; display:none; flex-direction:column;
+  justify-content:center; align-items:center;
+  padding:min(4vw,36px) min(5vw,48px) 100px;
+  overflow-y:auto;
+}
+.slide.active{ display:flex; animation:fadeUp .45s ease; }
+@keyframes fadeUp{ from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
+
+.slide-inner{
+  width:100%; max-width:960px; margin:auto 0;
+  display:flex; flex-direction:column; gap:18px;
+  justify-content:center;
+}
+
+h1{ font-size:clamp(1.8rem,4.5vw,2.6rem); margin:0; opacity:0; transform:translateY(-10px); }
+.slide.active h1{ animation:riseIn .5s cubic-bezier(.22,1,.36,1) .08s forwards; }
+h2{ font-size:clamp(1.4rem,3.4vw,2rem); margin:0; opacity:0; transform:translateY(-10px); }
+.slide.active h2{ animation:riseIn .5s cubic-bezier(.22,1,.36,1) .1s forwards; }
+p{ line-height:1.55; margin:0; }
+.muted{ color:var(--muted); }
+@keyframes riseIn{ to{ opacity:1; transform:translateY(0); } }
+
+.badge{
+  display:inline-block; align-self:flex-start;
+  font-size:.68rem; font-weight:700; letter-spacing:.08em;
+  background:var(--bg2); color:var(--muted); border:1px solid var(--line);
+  border-radius:999px; padding:5px 14px;
+  opacity:0; transform:translateY(-8px);
+}
+.slide.active .badge{ animation:riseIn .4s ease forwards; }
+
+.grid{
+  display:grid; grid-template-columns:1fr; gap:16px;
+}
+@media(min-width:760px){
+  .grid.cols-2{ grid-template-columns:1fr 1fr; }
+  .grid.cols-3{ grid-template-columns:1fr 1fr 1fr; }
+}
+
+.key{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-left:4px solid var(--accent);
+  border-radius:16px;
+  padding:22px 24px;
+  opacity:0; transform:translateY(18px);
+  min-height:110px;
+}
+.slide.active .key{ animation:keyIn .5s cubic-bezier(.22,1,.36,1) forwards; }
+.slide.active .grid > .key:nth-child(1){ animation-delay:.18s; }
+.slide.active .grid > .key:nth-child(2){ animation-delay:.28s; }
+.slide.active .grid > .key:nth-child(3){ animation-delay:.38s; }
+@keyframes keyIn{ to{ opacity:1; transform:translateY(0); } }
+
+.key.orange{ border-left-color:var(--accent2); }
+.key.green{ border-left-color:var(--accent3); }
+.key h3{ margin:0 0 10px; font-size:1.1rem; color:var(--accent); }
+.key.orange h3{ color:var(--accent2); }
+.key.green h3{ color:var(--accent3); }
+.key p{ font-size:1rem; color:var(--text); }
+
+.key.important{
+  border-left-width:5px;
+  box-shadow:0 0 0 1px rgba(107,140,255,.12), 0 10px 32px rgba(0,0,0,.22);
+}
+
+/* ===== CAPA (estilo apresentação final, sem legenda/narração) ===== */
+.slide.cover{
+  padding:0;
+  justify-content:center;
+  align-items:center;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(59,130,246,.18), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 70% 70%, rgba(139,92,246,.12), transparent 50%),
+    var(--bg);
+}
+.cover-card{
+  text-align:center;
+  max-width:640px;
+  padding:48px 40px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+}
+.cover-icon{
+  width:72px; height:72px; border-radius:50%;
+  background:linear-gradient(145deg, #5b7cfa, #8b5cf6);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 0 8px rgba(107,140,255,.15), 0 12px 40px rgba(91,124,250,.35);
+  margin-bottom:8px;
+  animation:iconPulse 3s ease-in-out infinite;
+}
+@keyframes iconPulse{
+  0%,100%{ box-shadow:0 0 0 8px rgba(107,140,255,.15), 0 12px 40px rgba(91,124,250,.35); }
+  50%{ box-shadow:0 0 0 14px rgba(139,92,246,.12), 0 16px 48px rgba(139,92,246,.4); }
+}
+.cover-icon svg{ width:36px; height:36px; fill:#fff; }
+.cover-school{
+  font-size:.78rem; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--muted); font-weight:600;
+}
+.cover-card h1{
+  font-size:clamp(2rem,5vw,2.8rem);
+  font-weight:800; letter-spacing:-.02em;
+  background:linear-gradient(90deg,#eef1ff,#a5b4fc,#c4b5fd);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  opacity:1; transform:none;
+}
+.cover-sub{
+  font-size:1.15rem; color:var(--accent); font-weight:600;
+}
+.cover-group{
+  margin-top:8px; font-size:1rem; color:var(--text);
+}
+.cover-prof, .cover-place{
+  font-size:.9rem; color:var(--muted);
+}
+.cover-place{ margin-top:4px; }
+
+/* ===== Fale para a plateia — pulso + cores que aparecem e somem ===== */
+.reading{
+  position:relative;
+  margin-top:8px;
+  padding:18px 22px 18px 52px;
+  border-radius:16px;
+  background:rgba(107,140,255,.07);
+  border:1px solid rgba(107,140,255,.25);
+  opacity:0; transform:translateY(14px);
+  z-index:1;
+}
+.slide.active .reading{
+  animation:
+    keyIn .5s cubic-bezier(.22,1,.36,1) .42s forwards,
+    readPulse 2.6s ease-in-out 1s infinite;
+}
+.reading::before{
+  content:"🔊";
+  position:absolute; left:16px; top:50%; transform:translateY(-50%);
+  font-size:1.2rem;
+}
+/* glow layers — cores surgem ao crescer e somem ao diminuir */
+.reading::after{
+  content:"";
+  position:absolute; inset:-3px;
+  border-radius:18px;
+  pointer-events:none;
+  z-index:-1;
+  opacity:0;
+}
+.slide.active .reading::after{
+  animation:readGlow 2.6s ease-in-out 1s infinite;
+}
+@keyframes readPulse{
+  0%, 100%{ transform:scale(1); }
+  50%{ transform:scale(1.025); }
+}
+@keyframes readGlow{
+  0%, 100%{
+    box-shadow:
+      0 0 0 0 rgba(107,140,255,0),
+      0 0 0 0 rgba(139,92,246,0),
+      0 0 0 0 rgba(59,130,246,0);
+    opacity:0;
+    border:1px solid transparent;
+  }
+  50%{
+    box-shadow:
+      0 0 18px 3px rgba(107,140,255,.5),
+      0 0 36px 8px rgba(139,92,246,.35),
+      0 0 52px 12px rgba(59,130,246,.18);
+    opacity:1;
+    border:1px solid rgba(167,139,250,.45);
+  }
+}
+.reading .reading-tag{
+  display:block; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--accent2); font-weight:800; margin-bottom:6px;
+}
+.reading p{ font-size:1rem; }
+
+.title-box{ position:relative; display:block; }
+
+#progressWrap{ position:fixed; top:0; left:0; right:0; height:3px; background:var(--line); z-index:20; }
+#progressFill{ height:100%; width:0%; background:linear-gradient(90deg,var(--accent3),var(--accent),var(--accent2)); }
+
+#notesBtn{ position:fixed; top:14px; right:14px; z-index:5; }
+#notes{
+  position:fixed; inset:auto 16px 90px 16px; max-height:36vh; overflow:auto;
+  background:var(--card); border:1px solid var(--accent2); border-radius:12px;
+  padding:14px 16px; display:none; font-size:.9rem; color:var(--muted); z-index:5;
+}
+#notes.show{ display:block; }
+#notes b{ color:var(--text); }
+
+#nav{
+  position:fixed; left:0; right:0; bottom:0; height:74px;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  display:flex; align-items:center; justify-content:space-between;
+  padding-left:5vw; padding-right:5vw;
+  background:linear-gradient(180deg, transparent, var(--bg) 35%);
+}
+.navbtn{
+  background:var(--card); color:var(--text); border:1px solid var(--line);
+  border-radius:10px; padding:10px 18px; font-size:.95rem; cursor:pointer;
+  transition:border-color .2s;
+}
+.navbtn:hover{ border-color:var(--accent); }
+#counter{ color:var(--muted); font-size:.85rem; letter-spacing:.05em; }
+#dots{ display:flex; gap:6px; }
+.dot{ width:7px; height:7px; border-radius:50%; background:var(--line); }
+.dot.on{ background:var(--accent); }
+
+svg{ width:100%; height:auto; max-height:48vh; }
+.curve{ fill:none; stroke-width:3; stroke-linecap:round; }
+.pt{ animation:blip 1.8s ease-in-out infinite; }
+@keyframes blip{ 0%,100%{ r:6; opacity:1;} 50%{ r:9; opacity:.6;} }
+.lbl{ font-size:13px; fill:var(--text); }
+.axislbl{ font-size:13px; fill:var(--muted); }
+.region-lbl{ font-size:15px; font-weight:700; }
+.footer-note{ color:var(--muted); font-size:.85rem; margin-top:2px; }
+
+@media (max-width:600px){
+  .slide{ padding:18px 14px 100px; }
+  .key{ padding:16px 16px; min-height:0; }
+  .cover-card{ padding:32px 24px; }
+}
+
+/* ===== INTRO OVNI / ÁTOMO (antes de tudo) ===== */
+#hint {
+  position: fixed; inset: 0; z-index: 200;
+  background:
+    radial-gradient(ellipse at 50% 28%, rgba(59,130,246,0.22), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgba(139,92,246,0.14), transparent 50%),
+    #0a0e1a;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 24px;
+  transition: opacity 0.55s, transform 0.55s;
+}
+#hint.hide { opacity: 0; pointer-events: none; transform: scale(1.04); }
+#hint .logo-orb {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: linear-gradient(145deg, #3b82f6, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44px; margin-bottom: 22px;
+  box-shadow: 0 0 0 10px rgba(107,140,255,0.12), 0 16px 48px rgba(91,124,250,0.4);
+  animation: orbPulse 2.4s ease-in-out infinite;
+}
+@keyframes orbPulse {
+  0%,100% {
+    box-shadow: 0 0 0 10px rgba(107,140,255,0.12), 0 16px 48px rgba(91,124,250,0.35);
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 18px rgba(139,92,246,0.15), 0 22px 60px rgba(139,92,246,0.45);
+    transform: translateY(-8px) scale(1.04);
+  }
+}
+#hint h1 {
+  font-size: clamp(1.9rem, 5vw, 2.7rem);
+  font-weight: 800;
+  color: #eef1ff;
+  margin: 0 0 10px;
+  letter-spacing: -0.02em;
+  opacity: 1; transform: none;
+}
+#hint p {
+  color: #9aa3c7;
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  line-height: 1.5;
+  margin: 0 0 20px;
+  max-width: 420px;
+}
+#hint .chips {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  margin-bottom: 28px;
+}
+#hint .chip {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #c7d2fe;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+#hint .start-btn {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+  border: none;
+  padding: 14px 36px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 32px rgba(91,124,250,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+#hint .start-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 14px 40px rgba(139,92,246,0.5);
+}
+body.intro-on #progressWrap,
+body.intro-on #notesBtn,
+body.intro-on #nav {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+
+/* ===== OVNI que desce do céu e revela o conteúdo ===== */
+.slide.ufo {
+  overflow: hidden;
+}
+.slide.ufo .ufo-craft {
+  position: absolute;
+  left: 50%;
+  top: -90px;
+  width: 96px;
+  height: 44px;
+  transform: translateX(-50%);
+  z-index: 15;
+  opacity: 0;
+  pointer-events: none;
+}
+.slide.ufo.active .ufo-craft {
+  animation: ufoDescend 2.2s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes ufoDescend {
+  0%   { opacity: 0; top: -90px; transform: translateX(-50%) scale(0.55); }
+  12%  { opacity: 1; }
+  42%  { top: 14%; transform: translateX(-50%) scale(1); }
+  68%  { top: 14%; opacity: 1; }
+  100% { opacity: 0; top: 12%; transform: translateX(-50%) scale(1.12); }
+}
+.slide.ufo .ufo-body {
+  width: 96px; height: 24px;
+  background: linear-gradient(180deg, #d0dcff 0%, #6b8cff 42%, #2a3a7a 100%);
+  border-radius: 50% 50% 42% 42%;
+  box-shadow: 0 0 24px rgba(100,140,255,0.75), 0 4px 14px rgba(0,0,0,0.35);
+  position: relative;
+  margin: 0 auto;
+}
+.slide.ufo .ufo-dome {
+  position: absolute;
+  left: 50%; top: -16px;
+  transform: translateX(-50%);
+  width: 40px; height: 24px;
+  background: linear-gradient(180deg, rgba(190,230,255,0.95), rgba(80,140,255,0.55));
+  border-radius: 50% 50% 40% 40%;
+  box-shadow: 0 0 16px rgba(120,180,255,0.85);
+}
+.slide.ufo .ufo-light {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  width: 6px;
+  height: 0;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, rgba(160,200,255,0.95), rgba(120,160,255,0));
+  box-shadow: 0 0 36px 16px rgba(100,160,255,0.4);
+  opacity: 0;
+  border-radius: 0 0 8px 8px;
+}
+.slide.ufo.active .ufo-light {
+  animation: beamDown 1.5s ease-out 0.5s forwards;
+}
+@keyframes beamDown {
+  0%   { height: 0; opacity: 0; }
+  25%  { opacity: 1; height: 140px; }
+  100% { opacity: 0; height: 280px; }
+}
+
+/* Conteúdo some até o OVNI revelar */
+.slide.ufo:not(.active) .slide-inner > *,
+.slide.ufo:not(.active) .badge,
+.slide.ufo:not(.active) h2,
+.slide.ufo:not(.active) .key,
+.slide.ufo:not(.active) .reading,
+.slide.ufo:not(.active) .footer-note,
+.slide.ufo:not(.active) svg {
+  opacity: 0 !important;
+  filter: blur(14px);
+}
+
+.slide.ufo.active .badge {
+  animation: materialize 0.55s cubic-bezier(0.22,1,0.36,1) 0.9s forwards !important;
+}
+.slide.ufo.active h2 {
+  animation: materialize 0.65s cubic-bezier(0.22,1,0.36,1) 1.05s forwards !important;
+}
+.slide.ufo.active .key {
+  opacity: 0;
+  filter: blur(12px);
+  animation: materialize 0.6s cubic-bezier(0.22,1,0.36,1) forwards !important;
+}
+.slide.ufo.active .grid > .key:nth-child(1) { animation-delay: 1.25s !important; }
+.slide.ufo.active .grid > .key:nth-child(2) { animation-delay: 1.4s !important; }
+.slide.ufo.active .grid > .key:nth-child(3) { animation-delay: 1.55s !important; }
+.slide.ufo.active .reading {
+  opacity: 0;
+  filter: blur(12px);
+  animation:
+    materialize 0.65s cubic-bezier(0.22,1,0.36,1) 1.7s forwards,
+    readPulse 2.6s ease-in-out 2.5s infinite !important;
+}
+.slide.ufo.active .reading::after {
+  animation: readGlow 2.6s ease-in-out 2.5s infinite !important;
+}
+.slide.ufo.active .footer-note {
+  animation: materialize 0.5s ease 1.85s forwards !important;
+}
+.slide.ufo.active svg {
+  opacity: 0;
+  filter: blur(10px);
+  animation: materialize 0.8s cubic-bezier(0.22,1,0.36,1) 1.15s forwards !important;
+}
+
+@keyframes materialize {
+  0%   { opacity: 0; filter: blur(14px); transform: translateY(18px) scale(0.96); }
+  100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+}
+
+.slide.ufo .scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 14;
+  opacity: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(120,160,255,0.04) 3px,
+    rgba(120,160,255,0.04) 4px
+  );
+}
+.slide.ufo.active .scanlines {
+  animation: scanFlash 1.8s ease 0.6s forwards;
+}
+@keyframes scanFlash {
+  0% { opacity: 0; }
+  30% { opacity: 0.7; }
+  100% { opacity: 0; }
+}
+
+
+/* Diagrama animado */
+.diagram-svg .region-fill { opacity: 0; }
+.slide.active .diagram-svg .region-fill {
+  animation: fadeRegion 0.9s ease forwards;
+}
+.slide.active .diagram-svg .region-fill.r1 { animation-delay: 2.4s; }
+.slide.active .diagram-svg .region-fill.r2 { animation-delay: 2.55s; }
+.slide.active .diagram-svg .region-fill.r3 { animation-delay: 2.7s; }
+.slide.active .diagram-svg .region-fill.r4 { animation-delay: 2.85s; }
+@keyframes fadeRegion { to { opacity: 1; } }
+
+.diagram-svg .region-lbl,
+.diagram-svg .pt-label,
+.diagram-svg .axislbl,
+.diagram-svg .axis-tick {
+  opacity: 0;
+}
+.slide.active .diagram-svg .axislbl,
+.slide.active .diagram-svg .axis-tick {
+  animation: fadeRegion 0.5s ease 0.3s forwards;
+}
+.slide.active .diagram-svg .region-lbl {
+  animation: fadeRegion 0.6s ease forwards;
+}
+.slide.active .diagram-svg .region-lbl.l1 { animation-delay: 3.0s; }
+.slide.active .diagram-svg .region-lbl.l2 { animation-delay: 3.1s; }
+.slide.active .diagram-svg .region-lbl.l3 { animation-delay: 3.2s; }
+.slide.active .diagram-svg .region-lbl.l4 { animation-delay: 3.3s; }
+
+.diagram-svg .pt-group { opacity: 0; }
+.slide.active .diagram-svg .pt-group {
+  animation: fadeRegion 0.4s ease forwards;
+}
+.slide.active .diagram-svg .pt-group.g-triplo { animation-delay: 3.5s; }
+.slide.active .diagram-svg .pt-group.g-critico { animation-delay: 4.2s; }
+
+.diagram-svg .pt-label {
+  opacity: 0;
+}
+.slide.active .diagram-svg .pt-label.lab-triplo {
+  animation: fadeRegion 0.5s ease 3.7s forwards;
+}
+.slide.active .diagram-svg .pt-label.lab-critico {
+  animation: fadeRegion 0.5s ease 4.4s forwards;
+}
+
+</style>
+</head>
+<body class="intro-on">
+
+<div id="hint">
+  <div class="logo-orb" aria-hidden="true">⚛️</div>
+  <h1>Diagrama de Fases</h1>
+  <p>Apresentação com Assistente Virtual Inteligente<br>
+  Grupo: Emerson · Eduardo · João Vitor Benedito · Renan</p>
+  <div class="chips">
+    <span class="chip">🎙️ Narração</span>
+    <span class="chip">✨ Cards animados</span>
+    <span class="chip">💬 Perguntas IA</span>
+    <span class="chip">📱 Mobile</span>
+  </div>
+  <button class="start-btn" type="button" onclick="startPresentation()">▶ Iniciar Apresentação</button>
+</div>
+
+
+<div id="progressWrap"><div id="progressFill"></div></div>
+<button class="navbtn" id="notesBtn" onclick="toggleNotes()">📝 Notas</button>
+<div id="notes"></div>
+
+<div id="deck">
+
+<!-- 0 - CAPA (sem legenda / sem narração) -->
+<section class="slide active cover" data-notes="Slide de abertura. Apresente o grupo e o tema.">
+  <div class="cover-card">
+    <div class="cover-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-5H8.5L12 7l3.5 4.5H13v5h-2z"/></svg>
+    </div>
+    <p class="cover-school">E.E. Professora Neide Enara Sima</p>
+    <h1>Diagrama de Fases</h1>
+    <p class="cover-sub">Trabalho de Física</p>
+    <p class="cover-group">Emerson · Eduardo · João Vitor Benedito · Renan</p>
+    <p class="cover-prof">Professora Lucineia Alves Barbosa</p>
+    <p class="cover-place">Nova Monte Verde – MT</p>
+  </div>
+</section>
+
+<!-- 1 -->
+<section class="slide ufo" data-notes="Explique que o diagrama de fases é um mapa: cada ponto (T,P) diz em que estado a substância está.">
+  <div class="slide-inner">
+    <span class="badge">PESQUISA · 1 e 2</span>
+    <div class="title-box"><h2>O que é um diagrama de fases?</h2></div>
+    <div class="grid cols-2">
+      <div class="key important">
+        <h3>Definição</h3>
+        <p>É um gráfico que mostra em quais condições de <b>pressão</b> e <b>temperatura</b> uma substância se encontra em cada estado físico, delimitando as regiões de estabilidade de cada fase.</p>
+      </div>
+      <div class="key orange">
+        <h3>Os três estados representados</h3>
+        <p><b>Sólido</b>, <b>líquido</b> e <b>gasoso (vapor)</b> — cada um ocupa uma região do gráfico, separada por curvas de mudança de estado.</p>
+      </div>
+    </div>
+    <div class="reading">
+      <span class="reading-tag">Fale para a plateia</span>
+      <p>O diagrama de fases é um mapa: cada ponto (temperatura, pressão) diz exatamente em qual estado a substância está. São sempre três estados clássicos — sólido, líquido e vapor.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide ufo" data-notes="Eixo vertical é pressão e horizontal temperatura.">
+  <div class="slide-inner">
+    <span class="badge">PESQUISA · 3</span>
+    <div class="title-box"><h2>Os eixos do diagrama</h2></div>
+    <div class="grid cols-2">
+      <div class="key important">
+        <h3>Eixo horizontal — Temperatura</h3>
+        <p>Representa a energia térmica do sistema; cresce da esquerda para a direita.</p>
+      </div>
+      <div class="key green">
+        <h3>Eixo vertical — Pressão</h3>
+        <p>Representa a pressão exercida sobre a substância; cresce de baixo para cima.</p>
+      </div>
+    </div>
+    <div class="reading">
+      <span class="reading-tag">Fale para a plateia</span>
+      <p>O eixo horizontal é a temperatura, crescendo para a direita. O eixo vertical é a pressão, crescendo para cima. Qualquer ponto do gráfico representa uma condição física específica da substância.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide ufo" data-notes="As três curvas: fusão, vaporização e sublimação.">
+  <div class="slide-inner">
+    <span class="badge">PESQUISA · 4, 5 e 6</span>
+    <div class="title-box"><h2>As três curvas de mudança de estado</h2></div>
+    <div class="grid cols-2">
+      <div class="key important">
+        <h3>Curva de fusão</h3>
+        <p>Separa a região sólida da líquida. Ao longo dela, sólido e líquido coexistem em equilíbrio (fusão / solidificação).</p>
+      </div>
+      <div class="key orange">
+        <h3>Curva de vaporização</h3>
+        <p>Separa líquido e vapor. Termina no ponto crítico. Ao longo dela, líquido e vapor coexistem.</p>
+      </div>
+      <div class="key green">
+        <h3>Curva de sublimação</h3>
+        <p>Separa sólido e vapor. Passagem direta sem líquido — exemplo: gelo seco (CO₂).</p>
+      </div>
+    </div>
+    <div class="reading">
+      <span class="reading-tag">Fale para a plateia</span>
+      <p>Três curvas separam as fases: fusão (sólido–líquido), vaporização (líquido–vapor) e sublimação (sólido–vapor direto, como no gelo seco).</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide ufo" data-notes="Ponto triplo e ponto crítico.">
+  <div class="slide-inner">
+    <span class="badge">PESQUISA · 7 e 8</span>
+    <div class="title-box"><h2>Pontos especiais do diagrama</h2></div>
+    <div class="grid cols-2">
+      <div class="key important">
+        <h3>Ponto triplo</h3>
+        <p>Condição única de pressão e temperatura em que <b>sólido, líquido e vapor coexistem</b> simultaneamente em equilíbrio.</p>
+      </div>
+      <div class="key orange">
+        <h3>Ponto crítico</h3>
+        <p>Limite em que a curva de vaporização termina: acima dessa P e T, não há mais distinção entre líquido e vapor (fluido supercrítico).</p>
+      </div>
+    </div>
+    <div class="reading">
+      <span class="reading-tag">Fale para a plateia</span>
+      <p>O ponto triplo é a única condição em que sólido, líquido e vapor coexistem ao mesmo tempo. Já o ponto crítico é onde termina a curva de vaporização: acima dele, líquido e vapor se tornam indistinguíveis.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide ufo" data-notes="Evaporação vs ebulição e efeito da pressão.">
+  <div class="slide-inner">
+    <span class="badge">PESQUISA · 9 e 10</span>
+    <div class="title-box"><h2>Evaporação, ebulição e pressão</h2></div>
+    <div class="grid cols-2">
+      <div class="key important">
+        <h3>Evaporação × Ebulição</h3>
+        <p><b>Evaporação</b>: só na superfície, qualquer temperatura, lenta. <b>Ebulição</b>: em toda a massa, temperatura específica, com bolhas.</p>
+      </div>
+      <div class="key green">
+        <h3>Efeito da pressão na ebulição</h3>
+        <p>Pressão <b>maior</b> → temperatura de ebulição maior (panela de pressão). Pressão <b>menor</b> → ferve com menos calor (altitude).</p>
+      </div>
+    </div>
+    <div class="reading">
+      <span class="reading-tag">Fale para a plateia</span>
+      <p>Evaporação é lenta e só na superfície. Ebulição acontece em todo o líquido, com bolhas. Quanto maior a pressão, maior a temperatura de ebulição — é assim que a panela de pressão funciona.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="slide ufo" data-notes="Por que a água é o exemplo clássico.">
+  <div class="slide-inner">
+    <span class="badge">PESQUISA · 11 e 12</span>
+    <div class="title-box"><h2>Por que a água é o exemplo clássico?</h2></div>
+    <div class="grid cols-2">
+      <div class="key important">
+        <h3>A água como referência</h3>
+        <p>Ponto triplo e crítico bem definidos; comportamento raro: curva de fusão com inclinação <b>negativa</b>, pois o gelo é menos denso que o líquido.</p>
+      </div>
+      <div class="key orange">
+        <h3>Exemplo do cotidiano</h3>
+        <p>Na <b>panela de pressão</b>, a pressão interna sobe e eleva o ponto de ebulição — os alimentos cozinham mais rápido.</p>
+      </div>
+    </div>
+    <div class="reading">
+      <span class="reading-tag">Fale para a plateia</span>
+      <p>A água é o exemplo clássico: pontos bem estudados e curva de fusão com inclinação negativa, porque o gelo é menos denso que a água líquida.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 - DIAGRAMA -->
+<section class="slide ufo" data-notes="Mostre o diagrama da água: regiões, curvas e pontos especiais.">
+  <div class="slide-inner">
+    <span class="badge">ATIVIDADE PRÁTICA</span>
+    <div class="title-box"><h2>Diagrama de fases da água</h2></div>
+    <svg class="diagram-svg" viewBox="0 0 620 420" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="fillSolido" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="var(--solido)" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="var(--solido)" stop-opacity=".15"/>
+        </linearGradient>
+        <linearGradient id="fillLiquido" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="var(--liquido)" stop-opacity=".45"/>
+          <stop offset="100%" stop-color="var(--liquido)" stop-opacity=".14"/>
+        </linearGradient>
+        <linearGradient id="fillVapor" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="var(--vapor)" stop-opacity=".4"/>
+          <stop offset="100%" stop-color="var(--vapor)" stop-opacity=".12"/>
+        </linearGradient>
+        <linearGradient id="fillSuper" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="#a78bfa" stop-opacity=".45"/>
+          <stop offset="100%" stop-color="#a78bfa" stop-opacity=".15"/>
+        </linearGradient>
+        <filter id="ptGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="3"/>
+        </filter>
+      </defs>
+
+      <!-- grid -->
+      <g class="axis-tick" stroke="var(--line)" stroke-width="1" opacity=".45">
+        <line x1="70" y1="120" x2="590" y2="120"/><line x1="70" y1="190" x2="590" y2="190"/>
+        <line x1="70" y1="260" x2="590" y2="260"/><line x1="215" y1="30" x2="215" y2="370"/>
+        <line x1="340" y1="30" x2="340" y2="370"/><line x1="470" y1="30" x2="470" y2="370"/>
+      </g>
+
+      <!-- regiões (aparecem depois das curvas) -->
+      <path class="region-fill r1" d="M70,30 L215,40 Q235,150 255,260 Q180,300 90,360 L70,360 Z" fill="url(#fillSolido)"/>
+      <path class="region-fill r2" d="M215,40 L470,40 L470,120 Q380,220 255,260 Q235,150 215,40 Z" fill="url(#fillLiquido)"/>
+      <path class="region-fill r3" d="M90,360 Q180,300 255,260 Q380,220 470,120 L590,120 L590,360 Z" fill="url(#fillVapor)"/>
+      <path class="region-fill r4" d="M470,30 L590,30 L590,120 L470,120 Z" fill="url(#fillSuper)"/>
+
+      <!-- eixos -->
+      <line x1="70" y1="370" x2="590" y2="370" stroke="var(--muted)" stroke-width="2"/>
+      <line x1="70" y1="370" x2="70" y2="30" stroke="var(--muted)" stroke-width="2"/>
+      <text x="330" y="405" class="axislbl" text-anchor="middle">Temperatura →</text>
+      <text x="30" y="200" class="axislbl" transform="rotate(-90 30 200)" text-anchor="middle">Pressão →</text>
+      <g class="axis-tick" font-size="10.5" fill="var(--muted)">
+        <text x="70" y="384" text-anchor="middle">0 °C</text>
+        <text x="255" y="384" text-anchor="middle">0,01 °C</text>
+        <text x="470" y="384" text-anchor="middle">≈374 °C</text>
+        <text x="60" y="264" text-anchor="end">1 atm</text>
+        <text x="60" y="124" text-anchor="end">≈218 atm</text>
+      </g>
+
+      <text class="region-lbl l1" x="120" y="150" fill="var(--solido)">Sólido</text>
+      <text class="region-lbl l2" x="330" y="230" fill="var(--liquido)">Líquido</text>
+      <text class="region-lbl l3" x="420" y="345" fill="var(--vapor)">Vapor</text>
+      <text class="region-lbl l4" x="485" y="55" fill="#a78bfa" font-size="12.5">Fluido</text>
+      <text class="region-lbl l4" x="485" y="70" fill="#a78bfa" font-size="12.5">supercrítico</text>
+
+      <!-- curvas desenhando -->
+      <path class="curve" id="c-sub" d="M 90 360 Q 180 300 255 260" stroke="var(--solido)" fill="none" stroke-width="3" stroke-linecap="round"
+        stroke-dasharray="320" stroke-dashoffset="320">
+        <animate id="an-sub" attributeName="stroke-dashoffset" from="320" to="0" dur="1.5s" begin="indefinite" fill="freeze"/>
+      </path>
+      <path class="curve" id="c-fus" d="M 255 260 Q 235 150 215 40" stroke="var(--liquido)" fill="none" stroke-width="3" stroke-linecap="round"
+        stroke-dasharray="280" stroke-dashoffset="280">
+        <animate id="an-fus" attributeName="stroke-dashoffset" from="280" to="0" dur="1.5s" begin="indefinite" fill="freeze"/>
+      </path>
+      <path class="curve" id="c-vap" d="M 255 260 Q 380 220 470 120" stroke="var(--vapor)" fill="none" stroke-width="3" stroke-linecap="round"
+        stroke-dasharray="300" stroke-dashoffset="300">
+        <animate id="an-vap" attributeName="stroke-dashoffset" from="300" to="0" dur="1.6s" begin="indefinite" fill="freeze"/>
+      </path>
+
+      <!-- Ponto triplo: sai da origem e anda até (255,260) -->
+      <g class="pt-group g-triplo">
+        <circle class="pt-glow" cx="70" cy="370" r="10" fill="var(--accent)" opacity=".25" filter="url(#ptGlow)">
+          <animate attributeName="cx" from="70" to="255" dur="1.6s" begin="indefinite" fill="freeze" id="an-triplo-x"/>
+          <animate attributeName="cy" from="370" to="260" dur="1.6s" begin="indefinite" fill="freeze" id="an-triplo-y"/>
+        </circle>
+        <circle class="pt" cx="70" cy="370" r="6" fill="var(--accent)">
+          <animate attributeName="cx" from="70" to="255" dur="1.6s" begin="indefinite" fill="freeze" id="an-triplo-x2"/>
+          <animate attributeName="cy" from="370" to="260" dur="1.6s" begin="indefinite" fill="freeze" id="an-triplo-y2"/>
+        </circle>
+      </g>
+      <text class="pt-label lab-triplo lbl" x="262" y="248" font-weight="700" fill="var(--text)">Ponto triplo</text>
+      <text class="pt-label lab-triplo lbl" x="262" y="264" fill="var(--muted)" font-size="11">0,01 °C · 611,657 Pa</text>
+
+      <!-- Ponto crítico: sai da origem e anda até (470,120) -->
+      <g class="pt-group g-critico">
+        <circle class="pt-glow" cx="70" cy="370" r="10" fill="var(--accent2)" opacity=".25" filter="url(#ptGlow)">
+          <animate attributeName="cx" from="70" to="470" dur="1.8s" begin="indefinite" fill="freeze" id="an-crit-x"/>
+          <animate attributeName="cy" from="370" to="120" dur="1.8s" begin="indefinite" fill="freeze" id="an-crit-y"/>
+        </circle>
+        <circle class="pt" cx="70" cy="370" r="6" fill="var(--accent2)">
+          <animate attributeName="cx" from="70" to="470" dur="1.8s" begin="indefinite" fill="freeze" id="an-crit-x2"/>
+          <animate attributeName="cy" from="370" to="120" dur="1.8s" begin="indefinite" fill="freeze" id="an-crit-y2"/>
+        </circle>
+      </g>
+      <text class="pt-label lab-critico lbl" x="478" y="108" font-weight="700" fill="var(--text)">Ponto crítico</text>
+      <text class="pt-label lab-critico lbl" x="478" y="124" fill="var(--muted)" font-size="11">373,95 °C · 22,06 MPa</text>
+    </svg>
+    <p class="footer-note">Curva de fusão levemente inclinada para a esquerda: peculiaridade da água. Zona roxa: fluido supercrítico.</p>
+    <div class="reading">
+      <span class="reading-tag">Fale para a plateia</span>
+      <p>Diagrama completo da água: sólido, líquido, vapor e fluido supercrítico. As três curvas se encontram no ponto triplo; a fusão sobe quase reta, levemente inclinada para a esquerda.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 - BIBLIOGRAFIA -->
+<section class="slide ufo" data-notes="Referências do trabalho.">
+  <div class="slide-inner">
+    <span class="badge">REFERÊNCIAS</span>
+    <div class="title-box"><h2>Bibliografia</h2></div>
+    <div class="grid">
+      <div class="key">
+        <h3>Livros didáticos</h3>
+        <p>HALLIDAY, D.; RESNICK, R.; WALKER, J. <i>Fundamentos de Física</i> — volume de Termodinâmica (mudanças de estado e diagramas de fases).</p>
+      </div>
+      <div class="key orange">
+        <h3>Livros didáticos</h3>
+        <p>YOUNG, H.; FREEDMAN, R. <i>Física II — Termodinâmica e Ondas</i> (pressão de vapor, ponto triplo e ponto crítico).</p>
+      </div>
+      <div class="key green">
+        <h3>Material de apoio</h3>
+        <p>Materiais de física geral sobre estados da matéria, evaporação, ebulição e pressão atmosférica.</p>
+      </div>
+    </div>
+    <p class="footer-note">Trabalho de Física — Diagrama de Fases · fins didáticos.</p>
+  </div>
+</section>
+
+</div>
+
+
+<div id="nav">
+  <button class="navbtn" onclick="go(-1)">← Anterior</button>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+    <div id="dots"></div>
+    <div id="counter"></div>
+  </div>
+  <button class="navbtn" onclick="go(1)">Próximo →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+
+let started = false;
+function startPresentation() {
+  if (started) return;
+  started = true;
+  const hint = document.getElementById("hint");
+  if (hint) hint.classList.add("hide");
+  document.body.classList.remove("intro-on");
+  setTimeout(() => { if (hint) hint.style.display = "none"; }, 600);
+  // go to first slide
+  i = 0;
+  
+// Injeta OVNI em cada slide (exceto capa)
+document.querySelectorAll(".slide.ufo").forEach(slide => {
+  if (slide.querySelector(".ufo-craft")) return;
+  const ufo = document.createElement("div");
+  ufo.className = "ufo-craft";
+  ufo.innerHTML = '<div class="ufo-body"><div class="ufo-dome"></div></div><div class="ufo-light"></div>';
+  slide.appendChild(ufo);
+  const scan = document.createElement("div");
+  scan.className = "scanlines";
+  slide.appendChild(scan);
+});
+
+render();
+}
+// intercept keys until started
+document.addEventListener("keydown", function introKey(e) {
+  if (!started) {
+    e.preventDefault();
+    startPresentation();
+  }
+}, true);
+
+let i = 0;
+const dotsEl = document.getElementById('dots');
+slides.forEach((_,idx)=>{
+  const d = document.createElement('div'); d.className='dot'+(idx===0?' on':'');
+  dotsEl.appendChild(d);
+});
+function render(){
+  slides.forEach((s,idx)=>s.classList.toggle('active', idx===i));
+  document.querySelectorAll('.dot').forEach((d,idx)=>d.classList.toggle('on', idx===i));
+  document.getElementById('counter').textContent = (i+1)+' / '+slides.length;
+  const notes = document.getElementById('notes');
+  notes.innerHTML = '<b>Notas:</b> '+(slides[i].dataset.notes||'');
+  startProgress(slides[i]);
+  restartDiagram(slides[i]);
+  restartUfo(slides[i]);
+}
+
+function restartUfo(slideEl){
+  if(!slideEl || !slideEl.classList.contains("ufo")) return;
+  const craft = slideEl.querySelector(".ufo-craft");
+  const light = slideEl.querySelector(".ufo-light");
+  const scan = slideEl.querySelector(".scanlines");
+  [craft, light, scan].forEach(el => {
+    if(!el) return;
+    el.style.animation = "none";
+    void el.offsetWidth;
+    el.style.animation = "";
+  });
+}
+
+function restartDiagram(slideEl){
+  if(!slideEl || !slideEl.querySelector('.diagram-svg')) return;
+  // reinicia dash das curvas
+  ['c-sub','c-fus','c-vap'].forEach(id=>{
+    const p = document.getElementById(id);
+    if(!p) return;
+    const len = id==='c-sub'?320:id==='c-fus'?280:300;
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = len;
+  });
+  // reinicia círculos na origem
+  slideEl.querySelectorAll('.pt-group circle').forEach(cir=>{
+    cir.setAttribute('cx','70');
+    cir.setAttribute('cy','370');
+  });
+  const startSeq = ()=>{
+    const run = (id, delay)=>{
+      setTimeout(()=>{
+        const el = document.getElementById(id);
+        if(el){ try{ el.beginElement(); }catch(e){} }
+      }, delay);
+    };
+    // curvas em sequência
+    run('an-sub', 400);
+    run('an-fus', 1200);
+    run('an-vap', 2000);
+    // pontos andam depois das curvas
+    run('an-triplo-x', 3200); run('an-triplo-y', 3200);
+    run('an-triplo-x2', 3200); run('an-triplo-y2', 3200);
+    run('an-crit-x', 4000); run('an-crit-y', 4000);
+    run('an-crit-x2', 4000); run('an-crit-y2', 4000);
+  };
+  // espera o OVNI materializar um pouco
+  setTimeout(startSeq, 900);
+}
+function startProgress(slideEl){
+  const fill = document.getElementById('progressFill');
+  const words = ((slideEl.dataset.notes||'')+' '+slideEl.innerText).trim().split(/\s+/).filter(Boolean).length;
+  const durationMs = Math.max(5000, Math.min(22000, words*260+2000));
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  void fill.offsetWidth;
+  fill.style.transition = 'width '+durationMs+'ms linear';
+  requestAnimationFrame(()=>{ fill.style.width = '100%'; });
+}
+function go(d){
+  if (!started) { startPresentation(); return; }
+  i = Math.max(0, Math.min(slides.length-1, i+d));
+  render();
+}
+function toggleNotes(){ document.getElementById('notes').classList.toggle('show'); }
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight') go(1);
+  if(e.key==='ArrowLeft') go(-1);
+});
+render();
+</script>
+</body>
+</html>
